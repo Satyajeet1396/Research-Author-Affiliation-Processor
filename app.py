@@ -12,7 +12,7 @@ exclusion_keywords = ["College", "Affiliated to"]
 
 # Streamlit UI
 st.title("Research Author Affiliation Processor")
-st.write("Upload a CSV file containing authors with affiliations to extract corresponding authors and their affiliations.")
+st.write("Upload a CSV file containing authors with affiliations to extract authors from Shivaji University, Kolhapur and their affiliations.")
 
 # Container for uploading CSV
 with st.container():
