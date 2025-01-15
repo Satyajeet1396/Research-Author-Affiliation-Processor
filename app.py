@@ -5,7 +5,7 @@ from io import BytesIO
 import base64
 
 # Define the valid affiliation (only Shivaji University in this case)
-valid_affiliations = ["Shivaji University"]
+valid_affiliations = ["Shivaji University", "Saveetha University"]
 
 # Define the exclusion keywords (i.e., words/phrases to ignore)
 exclusion_keywords = ["College", "Affiliated to"]
