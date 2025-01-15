@@ -4,15 +4,15 @@ import qrcode
 from io import BytesIO
 import base64
 
-# Define the valid affiliation (only Shivaji University in this case)
+# Define the valid affiliations
 valid_affiliations = ["Shivaji University", "Saveetha University"]
 
-# Define the exclusion keywords (i.e., words/phrases to ignore)
+# Define the exclusion keywords
 exclusion_keywords = ["College", "Affiliated to"]
 
 # Streamlit UI
 st.title("Research Author Affiliation Processor")
-st.write("Upload a CSV file containing authors with affiliations to extract authors from Shivaji University, Kolhapur and their affiliations.")
+st.write("Upload a CSV file containing authors with affiliations to extract authors from Shivaji University, Kolhapur, and Saveetha University.")
 
 # Container for uploading CSV
 with st.container():
@@ -43,16 +43,21 @@ def process_file(file):
                 name, affiliation = parts
                 affiliation = affiliation.strip()  # Clean up the affiliation
 
-                # Check if the affiliation is valid (only contains "Shivaji University")
-                if any(valid_affiliation in affiliation for valid_affiliation in valid_affiliations) and not any(exclusion in affiliation for exclusion in exclusion_keywords):
-                    valid_authors.append((name.strip(), affiliation))
+                # Handle Saveetha University (ignore exclusion keywords)
+                if "Saveetha University" in affiliation:
+                    if "Saveetha University" in valid_affiliations:
+                        valid_authors.append((name.strip(), affiliation))
+                # Handle other affiliations (consider exclusion keywords)
+                elif any(valid_affiliation in affiliation for valid_affiliation in valid_affiliations):
+                    if not any(exclusion in affiliation for exclusion in exclusion_keywords):
+                        valid_authors.append((name.strip(), affiliation))
 
         # If valid authors are found, consider the last one as the corresponding author
         if valid_authors:
             corresponding_author, corresponding_affiliation = valid_authors[-1]
             df.at[index, 'Corresponding Author'] = corresponding_author
             df.at[index, 'Corresponding Affiliation'] = corresponding_affiliation
-    
+
     return df
 
 # Container for processing file
