@@ -29,7 +29,7 @@ valid_departments = [
     "Department of Microbiology", "Department of Music and Dramatics", "Department of Physics",
     "FE Department of Political Science", "Department of Psychology", "Department of Sociology",
     "Department of Sports", "Department of Statistics", "Department of Technology",
-    "Department of Zoology", "School of Nanoscience and Technology", "School of Nanoscience and Biotechnology",
+    "Department of Zoology", "School of Nanoscience and Technology", "School of Nanoscience and Biotechnology", "School of Nanoscience and Technology"
     "Department of Biochemistry", "Department of Biotechnology",
     "Yashwantrao Chavan School of Rural Development", "UGC Center For Coaching For Competitive Examinations UGC Center"
 ]
