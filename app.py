@@ -10,7 +10,7 @@ st.write("Upload a CSV file containing research papers with details on authors (
 # File uploader (shared between both modules)
 uploaded_file = st.file_uploader("Upload CSV", type="csv")
 
-# Define valid affiliations (for processing corresponding author) 
+# Define valid affiliations (for processing corresponding author)
 valid_affiliations = ["Shivaji University", "Saveetha University"]
 # Define exclusion keywords (to be skipped when extracting department information)
 exclusion_keywords = ["college", "affiliated to"]  # lower-case for comparison
@@ -36,9 +36,6 @@ valid_departments = [
 ]
 
 # Helper function to extract department(s) from an affiliation string.
-# For each semicolon-separated segment, if it does NOT contain any exclusion keywords,
-# we check for valid department names. If found, they are concatenated (separated by a semicolon).
-# If no valid department is found in any segment, "Other" is returned.
 def extract_departments_from_affiliations(affiliation_str):
     segments = affiliation_str.split(";")
     matching_departments = []
@@ -99,8 +96,6 @@ def process_file(file):
     return df
 
 # --- Department Statistics Function ---
-# This function calculates statistics (number of papers and total citations)
-# for each department based on the "Authors with affiliations" column.
 def process_department_stats(file):
     file.seek(0)
     try:
@@ -152,10 +147,10 @@ def process_department_stats(file):
     ])
     return stats_df
 
-# --- Tabs for Functionality Selection ---
-tab1, tab2 = st.tabs(["Affiliation Processor", "Department Statistics"])
+# Use a sidebar selectbox to choose functionality (compatible with older Streamlit versions)
+option = st.sidebar.selectbox("Select Functionality", ["Affiliation Processor", "Department Statistics"])
 
-with tab1:
+if option == "Affiliation Processor":
     st.subheader("Corresponding Author Affiliation Processor")
     if uploaded_file:
         processed_df = process_file(uploaded_file)
@@ -170,12 +165,9 @@ with tab1:
             )
     else:
         st.info("Upload a CSV file to start processing for author affiliations.")
-
-with tab2:
+else:
     st.subheader("Department Statistics")
-    st.write("This module calculates the number of research papers and total citations for each department "
-             "by matching valid department names (while skipping segments that contain 'College' or 'Affiliated to'). "
-             "Citation counts are taken from the 'Cited by' column.")
+    st.write("This module calculates the number of research papers and total citations for each department by matching valid department names (while skipping segments that contain 'College' or 'Affiliated to'). Citation counts are taken from the 'Cited by' column.")
     if uploaded_file:
         stats_df = process_department_stats(uploaded_file)
         if stats_df is not None:
@@ -194,7 +186,6 @@ with tab2:
     else:
         st.info("Upload a CSV file to calculate department statistics.")
 
-# --- Support and Creator Information ---
 st.info("Created by Dr. Satyajeet Patil")
 st.info("For more cool apps like this visit: https://patilsatyajeet.wixsite.com/home/python")
 
