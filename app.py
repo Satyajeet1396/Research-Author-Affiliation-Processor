@@ -10,9 +10,10 @@ st.write("Upload a CSV file containing research papers with details on authors (
 # File uploader (shared between both modules)
 uploaded_file = st.file_uploader("Upload CSV", type="csv")
 
-# Define valid affiliations and exclusion keywords for the affiliation processor
+# Define valid affiliations (for processing corresponding author) 
 valid_affiliations = ["Shivaji University", "Saveetha University"]
-exclusion_keywords = ["college", "affiliated to"]  # lowercase for comparison
+# Define exclusion keywords (to be skipped when extracting department information)
+exclusion_keywords = ["college", "affiliated to"]  # lower-case for comparison
 
 # Define valid departments (names to match in the affiliation strings)
 valid_departments = [
@@ -29,23 +30,21 @@ valid_departments = [
     "Department of Microbiology", "Department of Music and Dramatics", "Department of Physics",
     "FE Department of Political Science", "Department of Psychology", "Department of Sociology",
     "Department of Sports", "Department of Statistics", "Department of Technology",
-    "Department of Zoology", "School of Nanoscience and Technology", "School of Nanoscience and Biotechnology", "School of Nanoscience and Technology"
+    "Department of Zoology", "School of Nanoscience and Technology", "School of Nanoscience and Biotechnology",
     "Department of Biochemistry", "Department of Biotechnology",
     "Yashwantrao Chavan School of Rural Development", "UGC Center For Coaching For Competitive Examinations UGC Center"
 ]
 
-# Helper function to extract on-campus department(s) from an affiliation string.
-# It only examines segments that contain "416004". If found, valid departments are extracted
-# (ignoring segments with exclusion keywords). If no segment with "416004" exists, returns an empty string.
+# Helper function to extract department(s) from an affiliation string.
+# For each semicolon-separated segment, if it does NOT contain any exclusion keywords,
+# we check for valid department names. If found, they are concatenated (separated by a semicolon).
+# If no valid department is found in any segment, "Other" is returned.
 def extract_departments_from_affiliations(affiliation_str):
     segments = affiliation_str.split(";")
     matching_departments = []
     for seg in segments:
         seg_clean = seg.strip()
-        # Only process segments that contain "416004" (on-campus indicator)
-        if "416004" not in seg_clean:
-            continue
-        # Skip segments with exclusion keywords
+        # Skip segments containing unwanted keywords
         if any(excl in seg_clean.lower() for excl in exclusion_keywords):
             continue
         for dept in valid_departments:
@@ -55,9 +54,7 @@ def extract_departments_from_affiliations(affiliation_str):
     if matching_departments:
         return "; ".join(matching_departments)
     else:
-        # If no on-campus segment found or no valid department is extracted,
-        # leave blank (so that off-campus rows can be easily filtered out later)
-        return ""
+        return "Other"
 
 # --- Affiliation Processor Function ---
 def process_file(file):
@@ -88,7 +85,7 @@ def process_file(file):
                 if "Saveetha University" in affiliation:
                     if "Saveetha University" in valid_affiliations:
                         valid_authors.append((name.strip(), affiliation))
-                # Check for other valid affiliations (ignoring exclusion keywords)
+                # Check for other valid affiliations (ignoring segments with exclusion keywords)
                 elif any(valid in affiliation for valid in valid_affiliations):
                     if not any(excl in affiliation.lower() for excl in exclusion_keywords):
                         valid_authors.append((name.strip(), affiliation))
@@ -97,14 +94,13 @@ def process_file(file):
             df.at[index, 'Corresponding Author'] = corresponding_author
             df.at[index, 'Corresponding Affiliation'] = corresponding_affiliation
 
-    # Add a new "Department" column. For each row, only the on-campus segments (those containing "416004")
-    # are examined for valid department names.
+    # Add a new "Department" column by examining the "Authors with affiliations" field.
     df["Department"] = df["Authors with affiliations"].apply(extract_departments_from_affiliations)
     return df
 
 # --- Department Statistics Function ---
-# This function uses only on-campus data (rows where "Authors with affiliations" contains "416004")
-# to calculate department statistics.
+# This function calculates statistics (number of papers and total citations)
+# for each department based on the "Authors with affiliations" column.
 def process_department_stats(file):
     file.seek(0)
     try:
@@ -117,19 +113,16 @@ def process_department_stats(file):
         st.error("CSV must contain the 'Authors with affiliations' column for department statistics.")
         return None
 
-    # Filter only on-campus rows (those that contain "416004")
-    df_oncampus = df[df["Authors with affiliations"].str.contains("416004", na=False)].copy()
-    
     # Use the "Cited by" column for citation counts; default to 0 if missing.
-    if "Cited by" not in df_oncampus.columns:
-        df_oncampus["Cited by"] = 0
+    if "Cited by" not in df.columns:
+        df["Cited by"] = 0
 
     # Initialize dictionary to hold statistics for each valid department and an "Other" bucket.
     stats = {dept: {"Papers": 0, "Citations": 0} for dept in valid_departments}
     stats["Other"] = {"Papers": 0, "Citations": 0}
 
-    # Process each on-campus paper (row)
-    for index, row in df_oncampus.iterrows():
+    # Process each paper (row)
+    for index, row in df.iterrows():
         affiliation_str = row["Authors with affiliations"]
         citations = row["Cited by"]
         try:
@@ -141,9 +134,7 @@ def process_department_stats(file):
         found = False
         for seg in segments:
             seg_clean = seg.strip()
-            # Only consider segments that indicate on-campus data and do not contain exclusion keywords.
-            if "416004" not in seg_clean:
-                continue
+            # Skip segments containing unwanted keywords
             if any(excl in seg_clean.lower() for excl in exclusion_keywords):
                 continue
             for dept in valid_departments:
@@ -182,8 +173,9 @@ with tab1:
 
 with tab2:
     st.subheader("Department Statistics")
-    st.write("This module calculates the number of research papers and total citations for each department using only on-campus data (affiliations containing '416004')."
-             " Citation counts are taken from the 'Cited by' column.")
+    st.write("This module calculates the number of research papers and total citations for each department "
+             "by matching valid department names (while skipping segments that contain 'College' or 'Affiliated to'). "
+             "Citation counts are taken from the 'Cited by' column.")
     if uploaded_file:
         stats_df = process_department_stats(uploaded_file)
         if stats_df is not None:
