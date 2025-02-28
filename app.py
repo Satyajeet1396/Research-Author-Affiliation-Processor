@@ -34,6 +34,17 @@ valid_departments = [
     "Yashwantrao Chavan School of Rural Development", "UGC Center For Coaching For Competitive Examinations UGC Center"
 ]
 
+# Helper function to extract department(s) from an affiliation string.
+def extract_departments_from_affiliations(affiliation_str):
+    matching_departments = []
+    for dept in valid_departments:
+        if dept.lower() in affiliation_str.lower():
+            matching_departments.append(dept)
+    if matching_departments:
+        return "; ".join(matching_departments)
+    else:
+        return "Other"
+
 # --- Affiliation Processor Function ---
 def process_file(file):
     # Reset file pointer to the beginning
@@ -71,6 +82,9 @@ def process_file(file):
             corresponding_author, corresponding_affiliation = valid_authors[-1]
             df.at[index, 'Corresponding Author'] = corresponding_author
             df.at[index, 'Corresponding Affiliation'] = corresponding_affiliation
+
+    # Add a new column "Department" based on the "Authors with affiliations" column.
+    df["Department"] = df["Authors with affiliations"].apply(extract_departments_from_affiliations)
     return df
 
 # --- Department Statistics Function ---
@@ -111,7 +125,6 @@ def process_department_stats(file):
         for affiliation in affiliations:
             affiliation = affiliation.strip()
             for dept in valid_departments:
-                # Case-insensitive matching of department name in the affiliation string
                 if dept.lower() in affiliation.lower():
                     stats[dept]["Papers"] += 1
                     stats[dept]["Citations"] += citations
@@ -137,7 +150,7 @@ with tab1:
             st.dataframe(processed_df)
             csv_data = processed_df.to_csv(index=False)
             st.download_button(
-                label="Download Updated CSV",
+                label="Download Updated CSV with Department Column",
                 data=csv_data,
                 file_name="updated_affiliations.csv",
                 mime="text/csv"
