@@ -191,12 +191,10 @@ else:
 
 # Export both outputs to a single Excel file with two sheets.
 if processed_df is not None and stats_df is not None:
-    towrite = BytesIO()
-    # Use ExcelWriter to write two sheets into one Excel file.
+        towrite = BytesIO()
     with pd.ExcelWriter(towrite, engine="xlsxwriter") as writer:
         processed_df.to_excel(writer, sheet_name="Affiliations", index=False)
         stats_df.to_excel(writer, sheet_name="Statistics", index=False)
-        writer.save()
     towrite.seek(0)
     st.download_button(
         label="Download Excel File (2 Sheets)",
