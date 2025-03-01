@@ -3,6 +3,7 @@ import pandas as pd
 import qrcode
 from io import BytesIO
 import base64
+import re
 
 st.title("Research Author Affiliation & Department Statistics Processor")
 st.write("Upload a CSV file containing research papers with details on authors (with affiliations) and citation counts.")
@@ -42,41 +43,44 @@ def extract_departments(affiliation_str):
     segments = affiliation_str.split(";")
     matching_departments = []
 
-    # Define consolidation mappings: {target_department: [aliases]}
+    # Define consolidation mappings with case-insensitive regex patterns
     consolidation_map = {
         "School of Nanoscience and Biotechnology": [
-            "school of nanoscience", "school of nanoscience and technology",
-            "department of nanoscience & nanotechnology", "school of nanoscience & biotechnology",
-            "school of nanoscience & technology", "school of nanoscience and bio-technology"
+            r"school\s+of\s+nanoscience(\s+and|\s+&)?\s+(technology|biotechnology|bio-technology)",
+            r"department\s+of\s+nanoscience\s*&\s*nanotechnology"
         ],
         "Department of Chemistry": [
-            "chemistry department", "analytical chemistry laboratory", "dept. of chemistry"
+            r"chemistry\s+department",
+            r"analytical\s+chemistry\s+laboratory",
+            r"dept\.?\s+of\s+chemistry"
         ],
         "Department of Physics": [
-            "physics department", "air glass laboratory", "dept. of phys.", 
-            "dept. of physics", "shivaji univ", "dept. phys."
+            r"physics\s+department",
+            r"dept\.?\s+of\s+phys\.?",
+            r"shivaji\s+univ\b"
         ]
     }
 
     for seg in segments:
-        seg_clean = seg.strip().lower()  # Process in lowercase for case-insensitive checks
+        seg_clean = seg.strip().lower()  # Case-insensitive processing
         if not any(valid.lower() in seg_clean for valid in valid_affiliations):
             continue
         if any(excl.lower() in seg_clean for excl in exclusion_keywords):
             continue
 
-        # Step 1: Check for consolidated departments
+        # Step 1: Check for consolidated departments using regex
         added_consolidated = []
-        for target_dept, aliases in consolidation_map.items():
-            if any(alias in seg_clean for alias in aliases):
-                if target_dept not in matching_departments:
-                    matching_departments.append(target_dept)
-                    added_consolidated.append(target_dept)
+        for target_dept, patterns in consolidation_map.items():
+            for pattern in patterns:
+                if re.search(pattern, seg_clean, re.IGNORECASE):
+                    if target_dept not in matching_departments:
+                        matching_departments.append(target_dept)
+                        added_consolidated.append(target_dept)
+                        break  # Avoid duplicates for the same target
 
-        # Step 2: Check for other valid departments (even if consolidated departments were added)
+        # Step 2: Check for other valid departments
         for dept in valid_departments:
             dept_lower = dept.lower()
-            # Skip if already added via consolidation (e.g., "Department of Physics" vs "Dept. of Phys.")
             if dept_lower in seg_clean and dept not in added_consolidated:
                 if dept not in matching_departments:
                     matching_departments.append(dept)
