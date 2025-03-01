@@ -14,7 +14,7 @@ uploaded_file = st.file_uploader("Upload CSV", type="csv")
 valid_affiliations = ["Shivaji University", "Saveetha University"]
 
 # Exclusion keywords to skip in affiliation segments (using exact capitalization in the list)
-exclusion_keywords = ["College", "Affiliated to"]
+exclusion_keywords = ["College", "Affiliated to", "Rajarambapu Institute of Technology", "Bhogawati Mahavidyalaya", "ADCET", "AMGOI", "Ashokrao Mane Group of Institutes", "Sanjay Ghodawat Group of Institutions", "Patangrao Kadam", "Centre for PG Studies", "D. Y. Patil Education Society", ]
 
 # Valid department names to look for
 valid_departments = [
@@ -28,7 +28,7 @@ valid_departments = [
     "Department of Journalism and Mass Communication", "Department of Law",
     "Department of Library and Information Science", "Department of Lifelong Learning and Extension",
     "Department of Marathi", "Department of Mathematics", "Department of Mass Communication",
-    "Department of Microbiology", "Department of Music and Dramatics", "Department of Physics",
+    "Department of Microbiology", "Department of Music and Dramatics", "Department of Physics", "Dep of Physics", "Dept. Phys.",
     "FE Department of Political Science", "Department of Psychology", "Department of Sociology",
     "Department of Sports", "Department of Statistics", "Department of Technology",
     "Department of Zoology", "School of Nanoscience and Technology", "School of Nanoscience and Biotechnology",
