@@ -43,31 +43,45 @@ def extract_departments(affiliation_str):
     matching_departments = []
     for seg in segments:
         seg_clean = seg.strip()
-        if not any(valid_affil.lower() in seg_clean.lower() for valid_affil in valid_affiliations):
+        # Skip segments without valid affiliation or with exclusion keywords
+        if not any(valid.lower() in seg_clean.lower() for valid in valid_affiliations):
             continue
         if any(excl.lower() in seg_clean.lower() for excl in exclusion_keywords):
             continue
+        
+        # Define consolidation groups
+        nanoscience_group = [
+            "School of Nanoscience", "School of Nanoscience and Technology",
+            "Department of Nanoscience & Nanotechnology", "School of Nanoscience & Biotechnology",
+            "School of Nanoscience & Technology", "School of Nanoscience and Bio-Technology"
+        ]
+        chemistry_group = [
+            "Chemistry Department", "Analytical Chemistry Laboratory", "Dept. of Chemistry"
+        ]
+        physics_group = [
+            "Physics Department", "Air Glass Laboratory", "Dept. of Phys.",
+            "Dept. of Physics", "Shivaji Univ", "Dept. Phys."
+        ]
+        
+        # Check each department once per segment
         for dept in valid_departments:
             if dept.lower() in seg_clean.lower():
-                if dept in [
-                    "School of Nanoscience", "School of Nanoscience and Technology", "Department of Nanoscience & Nanotechnology", "School of Nanoscience & Biotechnology", "School of Nanoscience & Technology", "School of Nanoscience and Bio-Technology"
-                    ]:
-                    if "School of Nanoscience and Biotechnology" not in matching_departments:
-                        matching_departments.append("School of Nanoscience and Biotechnology")
-        for dept in valid_departments:
-            if dept.lower() in seg_clean.lower():
-                if dept in [
-                    "Chemistry Department", "Analytical Chemistry Laboratory", "Dept. of Chemistry"
-                    ]:
-                    if "Department of Chemistry" not in matching_departments:
-                        matching_departments.append("Department of Chemistry")
-        for dept in valid_departments:
-            if dept.lower() in seg_clean.lower():
-                if dept in [
-                    "Physics Department", "Air Glass Laboratory", "Dept. of Phys.", "Dept. of Physics", "Shivaji Univ", "Dept. Phys."
-                    ]:
-                    if "Department of Physics" not in matching_departments:
-                        matching_departments.append("Department of Physics")    
+                # Check for nanoscience consolidation
+                if dept in nanoscience_group:
+                    consolidated = "School of Nanoscience and Biotechnology"
+                    if consolidated not in matching_departments:
+                        matching_departments.append(consolidated)
+                # Check for chemistry consolidation
+                elif dept in chemistry_group:
+                    consolidated = "Department of Chemistry"
+                    if consolidated not in matching_departments:
+                        matching_departments.append(consolidated)
+                # Check for physics consolidation
+                elif dept in physics_group:
+                    consolidated = "Department of Physics"
+                    if consolidated not in matching_departments:
+                        matching_departments.append(consolidated)
+                # Add other departments directly
                 else:
                     if dept not in matching_departments:
                         matching_departments.append(dept)
