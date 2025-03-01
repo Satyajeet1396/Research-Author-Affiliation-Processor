@@ -7,15 +7,15 @@ import base64
 st.title("Research Author Affiliation and Department Statistics Processor")
 st.write("Upload a CSV file containing research papers with details on authors (with affiliations) and citation counts.")
 
-# File uploader (shared between both modules)
+# File uploader (shared between modules)
 uploaded_file = st.file_uploader("Upload CSV", type="csv")
 
-# Define valid affiliations (for processing corresponding author)
+# Valid affiliations (for extracting corresponding author)
 valid_affiliations = ["Shivaji University", "Saveetha University"]
-# Define exclusion keywords (to be skipped when extracting department information)
+# Exclusion keywords to skip in affiliation segments
 exclusion_keywords = ["college", "affiliated to"]  # lower-case for comparison
 
-# Define valid departments (names to match in the affiliation strings)
+# Valid department names to look for
 valid_departments = [
     "Department of Agrochemicals and Pest Management", "Department of Bio-Chemistry",
     "Department of Bio-Technology", "Department of Botany", "Department of Chemistry",
@@ -36,12 +36,12 @@ valid_departments = [
 ]
 
 # Helper function to extract department(s) from an affiliation string.
-def extract_departments_from_affiliations(affiliation_str):
+def extract_departments(affiliation_str):
     segments = affiliation_str.split(";")
     matching_departments = []
     for seg in segments:
         seg_clean = seg.strip()
-        # Skip segments containing unwanted keywords
+        # Skip segments that contain unwanted keywords
         if any(excl in seg_clean.lower() for excl in exclusion_keywords):
             continue
         for dept in valid_departments:
@@ -62,37 +62,44 @@ def process_file(file):
         st.error("The uploaded CSV file is empty. Please upload a valid CSV file with data.")
         return None
 
-    if 'Authors with affiliations' not in df.columns:
-        st.error("CSV must contain the 'Authors with affiliations' column.")
+    # Determine which column to use for affiliation data.
+    if "Affiliations" in df.columns:
+        affil_field = "Affiliations"
+    elif "Authors with affiliations" in df.columns:
+        affil_field = "Authors with affiliations"
+    else:
+        st.error("CSV must contain either an 'Affiliations' or 'Authors with affiliations' column.")
         return None
 
-    # Process each row to extract corresponding author and affiliation based on valid affiliations.
+    # Process corresponding author and affiliation extraction
     df['Corresponding Author'] = ""
     df['Corresponding Affiliation'] = ""
     for index, row in df.iterrows():
-        authors_with_affiliations = row['Authors with affiliations']
-        authors_affiliations = authors_with_affiliations.split(';')
+        affil_text = row[affil_field]
+        parts_list = affil_text.split(";")
         valid_authors = []
-        for author_affiliation in authors_affiliations:
-            parts = author_affiliation.strip().split(',', 1)
-            if len(parts) == 2:
-                name, affiliation = parts
+        for part in parts_list:
+            # Expecting each part to be in the format "Name, Affiliation"
+            components = part.strip().split(',', 1)
+            if len(components) == 2:
+                name, affiliation = components
                 affiliation = affiliation.strip()
                 # Special handling for Saveetha University
                 if "Saveetha University" in affiliation:
                     if "Saveetha University" in valid_affiliations:
                         valid_authors.append((name.strip(), affiliation))
-                # Check for other valid affiliations (ignoring segments with exclusion keywords)
+                # Otherwise, check if the affiliation contains any valid affiliation
                 elif any(valid in affiliation for valid in valid_affiliations):
                     if not any(excl in affiliation.lower() for excl in exclusion_keywords):
                         valid_authors.append((name.strip(), affiliation))
         if valid_authors:
+            # Take the last valid author as the corresponding author
             corresponding_author, corresponding_affiliation = valid_authors[-1]
             df.at[index, 'Corresponding Author'] = corresponding_author
             df.at[index, 'Corresponding Affiliation'] = corresponding_affiliation
 
-    # Add a new "Department" column by examining the "Authors with affiliations" field.
-    df["Department"] = df["Authors with affiliations"].apply(extract_departments_from_affiliations)
+    # Create the "Department" column using the selected affiliation field.
+    df["Department"] = df[affil_field].apply(extract_departments)
     return df
 
 # --- Department Statistics Function ---
@@ -104,28 +111,33 @@ def process_department_stats(file):
         st.error("The uploaded CSV file is empty. Please upload a valid CSV file with data.")
         return None
 
-    if "Authors with affiliations" not in df.columns:
-        st.error("CSV must contain the 'Authors with affiliations' column for department statistics.")
+    # Determine which column to use for affiliation data.
+    if "Affiliations" in df.columns:
+        affil_field = "Affiliations"
+    elif "Authors with affiliations" in df.columns:
+        affil_field = "Authors with affiliations"
+    else:
+        st.error("CSV must contain either an 'Affiliations' or 'Authors with affiliations' column.")
         return None
 
     # Use the "Cited by" column for citation counts; default to 0 if missing.
     if "Cited by" not in df.columns:
         df["Cited by"] = 0
 
-    # Initialize dictionary to hold statistics for each valid department and an "Other" bucket.
+    # Initialize statistics dictionary for each valid department plus "Other"
     stats = {dept: {"Papers": 0, "Citations": 0} for dept in valid_departments}
     stats["Other"] = {"Papers": 0, "Citations": 0}
 
-    # Process each paper (row)
+    # Process each paper (row) to tally counts based on affiliation segments.
     for index, row in df.iterrows():
-        affiliation_str = row["Authors with affiliations"]
+        affil_text = row[affil_field]
         citations = row["Cited by"]
         try:
             citations = float(citations)
         except:
             citations = 0
 
-        segments = affiliation_str.split(";")
+        segments = affil_text.split(";")
         found = False
         for seg in segments:
             seg_clean = seg.strip()
@@ -147,10 +159,10 @@ def process_department_stats(file):
     ])
     return stats_df
 
-# Use a sidebar selectbox to choose functionality (compatible with older Streamlit versions)
-option = st.sidebar.selectbox("Select Functionality", ["Affiliation Processor", "Department Statistics"])
+# --- Use st.tabs for functionality selection ---
+tabs = st.tabs(["Affiliation Processor", "Department Statistics"])
 
-if option == "Affiliation Processor":
+with tabs[0]:
     st.subheader("Corresponding Author Affiliation Processor")
     if uploaded_file:
         processed_df = process_file(uploaded_file)
@@ -165,9 +177,12 @@ if option == "Affiliation Processor":
             )
     else:
         st.info("Upload a CSV file to start processing for author affiliations.")
-else:
+
+with tabs[1]:
     st.subheader("Department Statistics")
-    st.write("This module calculates the number of research papers and total citations for each department by matching valid department names (while skipping segments that contain 'College' or 'Affiliated to'). Citation counts are taken from the 'Cited by' column.")
+    st.write("This module calculates the number of research papers and total citations for each department "
+             "by matching valid department names (while skipping segments that contain 'College' or 'Affiliated to'). "
+             "Citation counts are taken from the 'Cited by' column.")
     if uploaded_file:
         stats_df = process_department_stats(uploaded_file)
         if stats_df is not None:
