@@ -23,7 +23,7 @@ valid_departments = [
     "School of Nanoscience and Biotechnology"
 ]
 
-# Define exclusion keywords (to filter out colleges and affiliated institutes)
+# Exclusion keywords to filter out unwanted entries
 exclusion_keywords = [
     "College", "Affiliated to", "Rajarambapu Institute of Technology",
     "Bhogawati Mahavidyalaya", "ADCET", "AMGOI",
@@ -31,7 +31,7 @@ exclusion_keywords = [
     "Patangrao Kadam", "Centre for PG Studies", "D. Y. Patil Education Society"
 ]
 
-# Regex patterns for specific department corrections
+# Regex patterns to help capture department names with alternative formats
 department_patterns = {
     "School of Nanoscience and Biotechnology": [
         r"school\s+of\s+nanoscience\s+(and|\&)?\s*biotechnology",
@@ -48,44 +48,50 @@ department_patterns = {
     ]
 }
 
-# Function to extract the most relevant department
+# Function to extract department(s) from an affiliation text.
+# 1. Check exclusion keywords first.
+# 2. Then, look for valid department names.
+# 3. If the affiliation is from Shivaji University, return all found names; otherwise, only the first.
 def extract_department(affiliation_text):
     if pd.isna(affiliation_text) or not isinstance(affiliation_text, str):
         return "Other"
+    
+    affil_lower = affiliation_text.lower()
 
-    affiliation_text = affiliation_text.lower()  # Convert to lowercase
-
-    # **Step 1: Apply exclusion filters**
+    # Step 1: Apply exclusion filter.
     for exclusion in exclusion_keywords:
-        if exclusion.lower() in affiliation_text:
+        if exclusion.lower() in affil_lower:
             return "Other"
+    
+    # Determine if the affiliation is from Shivaji University.
+    is_shivaji = "shivaji university" in affil_lower
 
-    # **Step 2: Find all matching valid departments**
     found_departments = []
-
-    # Exact match search
+    
+    # Step 2: Exact matching from the valid_departments list.
     for dept in valid_departments:
-        if dept.lower() in affiliation_text:
-            found_departments.append(dept)
-
-    # Regex-based search
+        if dept.lower() in affil_lower:
+            if dept not in found_departments:
+                found_departments.append(dept)
+    
+    # Step 3: Regex-based matching for alternative formats.
     for dept, patterns in department_patterns.items():
         for pattern in patterns:
-            if re.search(pattern, affiliation_text, re.IGNORECASE):
-                found_departments.append(dept)
-
-    # **Step 3: Prioritize most relevant department**
-    if found_departments:
-        # Prefer "Shivaji University" departments first
-        for dept in found_departments:
-            if "shivaji university" in affiliation_text:
-                return dept
-        # Otherwise, return the first matched department
+            if re.search(pattern, affil_lower, re.IGNORECASE):
+                if dept not in found_departments:
+                    found_departments.append(dept)
+    
+    if not found_departments:
+        return "Other"
+    
+    # Step 4: For Shivaji University, join all found department names.
+    if is_shivaji:
+        return "; ".join(found_departments)
+    else:
+        # For other universities, return only the first found match.
         return found_departments[0]
 
-    return "Other"  # Default if nothing matches
-
-# Function to process the file
+# Function to process the CSV file.
 def process_file(file):
     file.seek(0)
     try:
@@ -93,56 +99,58 @@ def process_file(file):
     except pd.errors.EmptyDataError:
         st.error("The uploaded CSV file is empty. Please upload a valid CSV file with data.")
         return None
-
-    # Check for valid column names
+    
+    # Determine the correct column for affiliations.
     affil_column = None
     for col in ["Affiliations", "Authors with affiliations"]:
         if col in df.columns:
             affil_column = col
             break
-
     if not affil_column:
         st.error("CSV must contain either 'Affiliations' or 'Authors with affiliations' column.")
         return None
-
-    # Apply department extraction function
+    
+    # Apply the extraction function.
     df["Department"] = df[affil_column].apply(extract_department)
-
-    # Debugging: Print department matches
-    st.write("### Debugging Output - First 10 Rows")
-    st.write(df[[affil_column, "Department"]].head(10))  # Show the first 10 rows
-
+    
+    st.write("### Debug Output (First 10 Rows)")
+    st.write(df[[affil_column, "Department"]].head(10))
+    
     return df
 
-# Function to process department statistics
+# Function to compute department statistics.
+# If the "Department" column has multiple names (separated by ";"), count each separately.
 def process_department_stats(df):
     stats = {dept: {"Papers": 0} for dept in valid_departments}
     stats["Other"] = {"Papers": 0}
-
+    
     for _, row in df.iterrows():
-        department = row["Department"]
-        if department in stats:
-            stats[department]["Papers"] += 1
-        else:
+        dept_field = row["Department"]
+        if dept_field == "Other":
             stats["Other"]["Papers"] += 1
-
+        else:
+            # Split multiple departments and count each.
+            dept_list = [d.strip() for d in dept_field.split(";")]
+            for dept in dept_list:
+                if dept in stats:
+                    stats[dept]["Papers"] += 1
+                else:
+                    stats["Other"]["Papers"] += 1
     return pd.DataFrame([{"Department": dept, "Papers": data["Papers"]} for dept, data in stats.items()])
 
-# **Process the file**
+# Process the file if uploaded.
 if uploaded_file:
     processed_df = process_file(uploaded_file)
     if processed_df is not None:
-        st.header("Processed Data")
+        st.header("Processed Affiliation Data")
         st.dataframe(processed_df)
-
-        # Generate stats
+        
         stats_df = process_department_stats(processed_df)
-
         st.header("Department Statistics")
         st.dataframe(stats_df)
         st.bar_chart(stats_df.set_index("Department")["Papers"])
-
-        # Export to Excel
+        
+        # Export results to an Excel file with two sheets.
         towrite = BytesIO()
         with pd.ExcelWriter(towrite, engine="xlsxwriter") as writer:
             processed_df.to_excel(writer, sheet_name="Affiliations", index=False)
