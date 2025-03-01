@@ -12,8 +12,9 @@ uploaded_file = st.file_uploader("Upload CSV", type="csv")
 
 # Valid affiliations (for extracting corresponding author)
 valid_affiliations = ["Shivaji University", "Saveetha University"]
-# Exclusion keywords to skip in affiliation segments
-exclusion_keywords = ["college", "affiliated to"]  # lower-case for comparison
+
+# Exclusion keywords to skip in affiliation segments (using exact capitalization in the list)
+exclusion_keywords = ["College", "Affiliated to"]
 
 # Valid department names to look for
 valid_departments = [
@@ -41,8 +42,8 @@ def extract_departments(affiliation_str):
     matching_departments = []
     for seg in segments:
         seg_clean = seg.strip()
-        # Skip segments that contain unwanted keywords
-        if any(excl in seg_clean.lower() for excl in exclusion_keywords):
+        # Skip segments that contain any exclusion keyword (case-insensitive)
+        if any(excl.lower() in seg_clean.lower() for excl in exclusion_keywords):
             continue
         for dept in valid_departments:
             if dept.lower() in seg_clean.lower():
@@ -71,7 +72,7 @@ def process_file(file):
         st.error("CSV must contain either an 'Affiliations' or 'Authors with affiliations' column.")
         return None
 
-    # Process corresponding author and affiliation extraction
+    # Process corresponding author and affiliation extraction.
     df['Corresponding Author'] = ""
     df['Corresponding Affiliation'] = ""
     for index, row in df.iterrows():
@@ -90,7 +91,8 @@ def process_file(file):
                         valid_authors.append((name.strip(), affiliation))
                 # Otherwise, check if the affiliation contains any valid affiliation
                 elif any(valid in affiliation for valid in valid_affiliations):
-                    if not any(excl in affiliation.lower() for excl in exclusion_keywords):
+                    # Only add if the affiliation does not contain any exclusion keyword
+                    if not any(excl.lower() in affiliation.lower() for excl in exclusion_keywords):
                         valid_authors.append((name.strip(), affiliation))
         if valid_authors:
             # Take the last valid author as the corresponding author
@@ -124,11 +126,11 @@ def process_department_stats(file):
     if "Cited by" not in df.columns:
         df["Cited by"] = 0
 
-    # Initialize statistics dictionary for each valid department plus "Other"
+    # Initialize statistics dictionary for each valid department and "Other".
     stats = {dept: {"Papers": 0, "Citations": 0} for dept in valid_departments}
     stats["Other"] = {"Papers": 0, "Citations": 0}
 
-    # Process each paper (row) to tally counts based on affiliation segments.
+    # Process each paper (row) to tally counts.
     for index, row in df.iterrows():
         affil_text = row[affil_field]
         citations = row["Cited by"]
@@ -141,8 +143,8 @@ def process_department_stats(file):
         found = False
         for seg in segments:
             seg_clean = seg.strip()
-            # Skip segments containing unwanted keywords
-            if any(excl in seg_clean.lower() for excl in exclusion_keywords):
+            # Skip segments containing unwanted keywords (case-insensitive)
+            if any(excl.lower() in seg_clean.lower() for excl in exclusion_keywords):
                 continue
             for dept in valid_departments:
                 if dept.lower() in seg_clean.lower():
@@ -180,9 +182,7 @@ with tabs[0]:
 
 with tabs[1]:
     st.subheader("Department Statistics")
-    st.write("This module calculates the number of research papers and total citations for each department "
-             "by matching valid department names (while skipping segments that contain 'College' or 'Affiliated to'). "
-             "Citation counts are taken from the 'Cited by' column.")
+    st.write("This module calculates the number of research papers and total citations for each department by matching valid department names (while skipping segments that contain 'College' or 'Affiliated to'). Citation counts are taken from the 'Cited by' column.")
     if uploaded_file:
         stats_df = process_department_stats(uploaded_file)
         if stats_df is not None:
