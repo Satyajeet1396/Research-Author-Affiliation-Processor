@@ -9,9 +9,9 @@ st.write("Upload a CSV file containing research papers with author affiliations.
 # File uploader
 uploaded_file = st.file_uploader("Upload CSV", type="csv")
 
-# List of valid departments
+# List of valid departments (update Agro-Chemicals to match expected output)
 valid_departments = [
-    "Department of Agrochemicals and Pest Management", "Department of Bio-Chemistry",
+    "Department of Agro-Chemicals and Pest Management", "Department of Bio-Chemistry",
     "Department of Bio-Technology", "Department of Botany", "Department of Chemistry",
     "Department of Commerce and Management", "Department of Computer Science",
     "Department of Electronics", "Department of Environmental Science",
@@ -23,7 +23,7 @@ valid_departments = [
     "School of Nanoscience and Biotechnology"
 ]
 
-# Exclusion keywords to filter out unwanted entries
+# Exclusion keywords to filter out unwanted segments (e.g., college, affiliated to, etc.)
 exclusion_keywords = [
     "College", "Affiliated to", "Rajarambapu Institute of Technology",
     "Bhogawati Mahavidyalaya", "ADCET", "AMGOI",
@@ -31,7 +31,7 @@ exclusion_keywords = [
     "Patangrao Kadam", "Centre for PG Studies", "D. Y. Patil Education Society"
 ]
 
-# Regex patterns to help capture department names with alternative formats
+# Regex patterns for alternative formats
 department_patterns = {
     "School of Nanoscience and Biotechnology": [
         r"school\s+of\s+nanoscience\s+(and|\&)?\s*biotechnology",
@@ -48,50 +48,72 @@ department_patterns = {
     ]
 }
 
-# Function to extract department(s) from an affiliation text.
-# 1. Check exclusion keywords first.
-# 2. Then, look for valid department names.
-# 3. If the affiliation is from Shivaji University, return all found names; otherwise, only the first.
+# New extraction function:
+# 1. Split the affiliation text into segments (by semicolon).
+# 2. For each segment, apply the exclusion filter.
+# 3. From each segment, extract valid department names (using both exact matching and regex) 
+#    with hyphen normalization.
+# 4. If any segment is from Shivaji University, return only the department names found there (all, if multiple).
+# 5. Otherwise, return the first valid department found in the other segments.
 def extract_department(affiliation_text):
     if pd.isna(affiliation_text) or not isinstance(affiliation_text, str):
         return "Other"
     
-    affil_lower = affiliation_text.lower()
-
-    # Step 1: Apply exclusion filter.
-    for exclusion in exclusion_keywords:
-        if exclusion.lower() in affil_lower:
-            return "Other"
+    segments = affiliation_text.split(";")
     
-    # Determine if the affiliation is from Shivaji University.
-    is_shivaji = "shivaji university" in affil_lower
-
-    found_departments = []
+    shivaji_depts = []
+    other_depts = []
     
-    # Step 2: Exact matching from the valid_departments list.
-    for dept in valid_departments:
-        if dept.lower() in affil_lower:
-            if dept not in found_departments:
-                found_departments.append(dept)
+    for seg in segments:
+        seg_lower = seg.lower().strip()
+        # Normalize hyphens to spaces so "agro-chemicals" becomes "agro chemicals"
+        norm_seg = seg_lower.replace("-", " ")
+        
+        # Apply exclusion filter for this segment
+        excluded = False
+        for exclusion in exclusion_keywords:
+            if exclusion.lower() in norm_seg:
+                excluded = True
+                break
+        if excluded:
+            continue
+        
+        found = []
+        # Exact matching (normalize valid department strings similarly)
+        for dept in valid_departments:
+            norm_dept = dept.lower().replace("-", " ")
+            if norm_dept in norm_seg:
+                if dept not in found:
+                    found.append(dept)
+        
+        # Regex matching for alternative formats
+        for dept, patterns in department_patterns.items():
+            for pattern in patterns:
+                if re.search(pattern, norm_seg, re.IGNORECASE):
+                    if dept not in found:
+                        found.append(dept)
+        
+        # Determine if this segment is from Shivaji University
+        if "shivaji university" in norm_seg:
+            shivaji_depts.extend(found)
+        else:
+            other_depts.extend(found)
     
-    # Step 3: Regex-based matching for alternative formats.
-    for dept, patterns in department_patterns.items():
-        for pattern in patterns:
-            if re.search(pattern, affil_lower, re.IGNORECASE):
-                if dept not in found_departments:
-                    found_departments.append(dept)
-    
-    if not found_departments:
-        return "Other"
-    
-    # Step 4: For Shivaji University, join all found department names.
-    if is_shivaji:
-        return "; ".join(found_departments)
+    # If any departments are found from Shivaji University segments, return those (unique, joined by "; ")
+    if shivaji_depts:
+        unique_shivaji = []
+        for dept in shivaji_depts:
+            if dept not in unique_shivaji:
+                unique_shivaji.append(dept)
+        return "; ".join(unique_shivaji) if unique_shivaji else "Other"
     else:
-        # For other universities, return only the first found match.
-        return found_departments[0]
+        # If no Shivaji segments, return the first valid department from non-Shivaji segments if any
+        if other_depts:
+            return other_depts[0]
+        else:
+            return "Other"
 
-# Function to process the CSV file.
+# Process the CSV file and add a new "Department" column based on the affiliation extraction.
 def process_file(file):
     file.seek(0)
     try:
@@ -100,7 +122,6 @@ def process_file(file):
         st.error("The uploaded CSV file is empty. Please upload a valid CSV file with data.")
         return None
     
-    # Determine the correct column for affiliations.
     affil_column = None
     for col in ["Affiliations", "Authors with affiliations"]:
         if col in df.columns:
@@ -110,7 +131,6 @@ def process_file(file):
         st.error("CSV must contain either 'Affiliations' or 'Authors with affiliations' column.")
         return None
     
-    # Apply the extraction function.
     df["Department"] = df[affil_column].apply(extract_department)
     
     st.write("### Debug Output (First 10 Rows)")
@@ -118,8 +138,7 @@ def process_file(file):
     
     return df
 
-# Function to compute department statistics.
-# If the "Department" column has multiple names (separated by ";"), count each separately.
+# Process department statistics: if the "Department" field contains multiple names (separated by ";"), count each separately.
 def process_department_stats(df):
     stats = {dept: {"Papers": 0} for dept in valid_departments}
     stats["Other"] = {"Papers": 0}
@@ -129,7 +148,6 @@ def process_department_stats(df):
         if dept_field == "Other":
             stats["Other"]["Papers"] += 1
         else:
-            # Split multiple departments and count each.
             dept_list = [d.strip() for d in dept_field.split(";")]
             for dept in dept_list:
                 if dept in stats:
