@@ -7,12 +7,13 @@ import base64
 st.title("Research Author Affiliation & Department Statistics Processor")
 st.write("Upload a CSV file containing research papers with details on authors (with affiliations) and citation counts.")
 
-# File uploader (shared between both functions)
+# File uploader (shared between modules)
 uploaded_file = st.file_uploader("Upload CSV", type="csv")
 
 # Valid affiliations (used for both corresponding author extraction and department filtering)
 valid_affiliations = ["Shivaji University", "Saveetha University"]
 
+# Exclusion keywords to skip in affiliation segments (exact capitalization as given)
 exclusion_keywords = ["College", "Affiliated to", "Rajarambapu Institute of Technology", "Bhogawati Mahavidyalaya", "ADCET", "AMGOI", "Ashokrao Mane Group of Institutes", "Sanjay Ghodawat Group of Institutions", "Patangrao Kadam", "Centre for PG Studies", "D. Y. Patil Education Society"]
 
 # Valid department names to look for
@@ -36,7 +37,7 @@ valid_departments = [
 ]
 
 # Helper function to extract department(s) from an affiliation string.
-# Only segments that contain one of the valid affiliations and do not contain any exclusion keyword are considered.
+# Only segments that contain one of the valid affiliations and do NOT contain any exclusion keyword are considered.
 def extract_departments(affiliation_str):
     segments = affiliation_str.split(";")
     matching_departments = []
@@ -115,6 +116,7 @@ def process_department_stats(file):
         st.error("The uploaded CSV file is empty. Please upload a valid CSV file with data.")
         return None
 
+    # Determine which column to use for affiliation data.
     if "Affiliations" in df.columns:
         affil_field = "Affiliations"
     elif "Authors with affiliations" in df.columns:
@@ -123,14 +125,15 @@ def process_department_stats(file):
         st.error("CSV must contain either an 'Affiliations' or 'Authors with affiliations' column.")
         return None
 
-    # Use "Cited by" column for citation counts; default to 0 if missing.
+    # Use the "Cited by" column for citation counts; default to 0 if missing.
     if "Cited by" not in df.columns:
         df["Cited by"] = 0
 
-    # Initialize statistics dictionary for each valid department plus an "Other" bucket.
+    # Initialize statistics dictionary for each valid department and an "Other" bucket.
     stats = {dept: {"Papers": 0, "Citations": 0} for dept in valid_departments}
     stats["Other"] = {"Papers": 0, "Citations": 0}
 
+    # Process each paper (row) to tally counts.
     for index, row in df.iterrows():
         affil_text = row[affil_field]
         citations = row["Cited by"]
@@ -143,7 +146,7 @@ def process_department_stats(file):
         found = False
         for seg in segments:
             seg_clean = seg.strip()
-            # Process only if the segment contains one of the valid affiliations.
+            # Only consider the segment if it contains one of the valid affiliations.
             if not any(valid_affil.lower() in seg_clean.lower() for valid_affil in valid_affiliations):
                 continue
             # Skip segments that contain any exclusion keyword.
@@ -191,7 +194,7 @@ else:
 
 # Export both outputs to a single Excel file with two sheets.
 if processed_df is not None and stats_df is not None:
-        towrite = BytesIO()
+    towrite = BytesIO()
     with pd.ExcelWriter(towrite, engine="xlsxwriter") as writer:
         processed_df.to_excel(writer, sheet_name="Affiliations", index=False)
         stats_df.to_excel(writer, sheet_name="Statistics", index=False)
@@ -208,12 +211,12 @@ st.info("For more cool apps like this visit: https://patilsatyajeet.wixsite.com/
 
 with st.expander("🤝 Support Our Research", expanded=False):
     st.markdown("""
-        <div style='text-align: center; padding: 1rem; background-color: #f0f2f6; border-radius: 10px; margin: 1rem 0;'>
-            <h3>🙏 Your Support Makes a Difference!</h3>
-            <p>Your contribution helps us continue developing free tools for the research community.</p>
-            <p>Every donation, no matter how small, fuels our research journey!</p>
-        </div>
-        """, unsafe_allow_html=True)
+    <div style='text-align: center; padding: 1rem; background-color: #f0f2f6; border-radius: 10px; margin: 1rem 0;'>
+        <h3>🙏 Your Support Makes a Difference!</h3>
+        <p>Your contribution helps us continue developing free tools for the research community.</p>
+        <p>Every donation, no matter how small, fuels our research journey!</p>
+    </div>
+    """, unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("#### UPI Payment")
