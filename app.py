@@ -30,7 +30,7 @@ exclusion_keywords = [
     "Patangrao Kadam", "Centre for PG Studies", "D. Y. Patil Education Society"
 ]
 
-# Regex patterns for alternative formats
+# Regex patterns for alternative formats for some departments
 department_patterns = {
     "School of Nanoscience and Biotechnology": [
         r"school\s+of\s+nanoscience\s+(and|\&)?\s*biotechnology",
@@ -47,7 +47,14 @@ department_patterns = {
     ]
 }
 
-# Extraction function: Only consider segments from Shivaji University.
+# Extraction function:
+# 1. Split the affiliation text into segments (by semicolon).
+# 2. For each segment, first apply the exclusion filter.
+# 3. Then, if the segment mentions "shivaji university", try to match valid departments.
+#    • Both exact matching and regex matching are used.
+#    • For candidates matching "School of Nanoscience and Biotechnology", an extra check is done:
+#      if "technology" is present but "biotechnology" is not, then skip this candidate.
+# 4. If no valid departments are found in any qualifying (Shivaji University) segment, return "Other".
 def extract_department(affiliation_text):
     if pd.isna(affiliation_text) or not isinstance(affiliation_text, str):
         return "Other"
@@ -57,31 +64,41 @@ def extract_department(affiliation_text):
     
     for seg in segments:
         seg_lower = seg.lower().strip()
-        # Normalize hyphens to spaces
+        # Normalize hyphens to spaces (e.g., "agro-chemicals" becomes "agro chemicals")
         norm_seg = seg_lower.replace("-", " ")
         
-        # Exclusion: Skip this segment if it contains any exclusion keyword.
+        # Exclusion: skip if any exclusion keyword is present
         if any(excl.lower() in norm_seg for excl in exclusion_keywords):
             continue
         
-        # Process only segments that mention "shivaji university"
+        # Only process segments that mention "shivaji university"
         if "shivaji university" in norm_seg:
             found = []
             # Exact matching (normalize both sides)
             for dept in valid_departments:
                 norm_dept = dept.lower().replace("-", " ")
-                if norm_dept in norm_seg and dept not in found:
-                    found.append(dept)
+                if norm_dept in norm_seg:
+                    # For "School of Nanoscience and Biotechnology", ensure that "biotechnology" is present
+                    if dept == "School of Nanoscience and Biotechnology":
+                        if "technology" in norm_seg and "biotechnology" not in norm_seg:
+                            continue
+                    if dept not in found:
+                        found.append(dept)
             # Regex matching for alternative formats
             for dept, patterns in department_patterns.items():
                 for pattern in patterns:
                     if re.search(pattern, norm_seg, re.IGNORECASE):
+                        # Extra check: if the candidate is "School of Nanoscience and Biotechnology",
+                        # then skip if the segment only has "technology" (and not "biotechnology")
+                        if dept == "School of Nanoscience and Biotechnology":
+                            if "technology" in norm_seg and "biotechnology" not in norm_seg:
+                                continue
                         if dept not in found:
                             found.append(dept)
             shivaji_depts.extend(found)
     
-    # If any valid departments were found from Shivaji University segments, return them (joined if multiple).
     if shivaji_depts:
+        # Return unique departments (joined with "; " if more than one)
         unique_shivaji = []
         for dept in shivaji_depts:
             if dept not in unique_shivaji:
@@ -90,7 +107,7 @@ def extract_department(affiliation_text):
     else:
         return "Other"
 
-# Process the CSV file and add a "Department" column.
+# Process the CSV file and add a "Department" column based on the affiliation extraction.
 def process_file(file):
     file.seek(0)
     try:
@@ -99,7 +116,7 @@ def process_file(file):
         st.error("The uploaded CSV file is empty. Please upload a valid CSV file with data.")
         return None
     
-    # Determine the affiliation column.
+    # Identify the affiliation column.
     affil_column = None
     for col in ["Affiliations", "Authors with affiliations"]:
         if col in df.columns:
@@ -116,8 +133,7 @@ def process_file(file):
     
     return df
 
-# Process department statistics:
-# If the "Department" field contains multiple names (separated by ";"), count each separately.
+# Process department statistics: if the "Department" field contains multiple names (separated by ";"), count each separately.
 def process_department_stats(df):
     stats = {dept: {"Papers": 0} for dept in valid_departments}
     stats["Other"] = {"Papers": 0}
