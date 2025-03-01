@@ -4,4 +4,3 @@ matplotlib
 openpyxl
 qrcode
 XlsxWriter
-re
