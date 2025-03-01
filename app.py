@@ -67,8 +67,7 @@ def extract_departments(affiliation_str):
                     "Physics Department", "Air Glass Laboratory", "Dept. of Phys.", "Dept. of Physics", "Shivaji Univ", "Dept. Phys."
                     ]:
                     if "Department of Physics" not in matching_departments:
-                        matching_departments.append("Department of Physics")
-                        
+                        matching_departments.append("Department of Physics")    
                 else:
                     if dept not in matching_departments:
                         matching_departments.append(dept)
