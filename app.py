@@ -54,6 +54,21 @@ def extract_departments(affiliation_str):
                     ]:
                     if "School of Nanoscience and Biotechnology" not in matching_departments:
                         matching_departments.append("School of Nanoscience and Biotechnology")
+        for dept in valid_departments:
+            if dept.lower() in seg_clean.lower():
+                if dept in [
+                    "Chemistry Department", "Analytical Chemistry Laboratory", "Dept. of Chemistry"
+                    ]:
+                    if "Department of Chemistry" not in matching_departments:
+                        matching_departments.append("Department of Chemistry")
+        for dept in valid_departments:
+            if dept.lower() in seg_clean.lower():
+                if dept in [
+                    "Physics Department", "Air Glass Laboratory", "Dept. of Phys.", "Dept. of Physics", "Shivaji Univ", "Dept. Phys."
+                    ]:
+                    if "Department of Physics" not in matching_departments:
+                        matching_departments.append("Department of Physics")
+                        
                 else:
                     if dept not in matching_departments:
                         matching_departments.append(dept)
