@@ -41,50 +41,46 @@ valid_departments = [
 def extract_departments(affiliation_str):
     segments = affiliation_str.split(";")
     matching_departments = []
+
+    # Define consolidation mappings: {target_department: [aliases]}
+    consolidation_map = {
+        "School of Nanoscience and Biotechnology": [
+            "school of nanoscience", "school of nanoscience and technology",
+            "department of nanoscience & nanotechnology", "school of nanoscience & biotechnology",
+            "school of nanoscience & technology", "school of nanoscience and bio-technology"
+        ],
+        "Department of Chemistry": [
+            "chemistry department", "analytical chemistry laboratory", "dept. of chemistry"
+        ],
+        "Department of Physics": [
+            "physics department", "air glass laboratory", "dept. of phys.", 
+            "dept. of physics", "shivaji univ", "dept. phys."
+        ]
+    }
+
     for seg in segments:
-        seg_clean = seg.strip()
-        # Skip segments without valid affiliation or with exclusion keywords
-        if not any(valid.lower() in seg_clean.lower() for valid in valid_affiliations):
+        seg_clean = seg.strip().lower()  # Process in lowercase for case-insensitive checks
+        if not any(valid.lower() in seg_clean for valid in valid_affiliations):
             continue
-        if any(excl.lower() in seg_clean.lower() for excl in exclusion_keywords):
+        if any(excl.lower() in seg_clean for excl in exclusion_keywords):
             continue
-        
-        # Define consolidation groups
-        nanoscience_group = [
-            "School of Nanoscience", "School of Nanoscience and Technology",
-            "Department of Nanoscience & Nanotechnology", "School of Nanoscience & Biotechnology",
-            "School of Nanoscience & Technology", "School of Nanoscience and Bio-Technology"
-        ]
-        chemistry_group = [
-            "Chemistry Department", "Analytical Chemistry Laboratory", "Dept. of Chemistry"
-        ]
-        physics_group = [
-            "Physics Department", "Air Glass Laboratory", "Dept. of Phys.",
-            "Dept. of Physics", "Shivaji Univ", "Dept. Phys."
-        ]
-        
-        # Check each department once per segment
+
+        # Step 1: Check for consolidated departments
+        added_consolidated = []
+        for target_dept, aliases in consolidation_map.items():
+            if any(alias in seg_clean for alias in aliases):
+                if target_dept not in matching_departments:
+                    matching_departments.append(target_dept)
+                    added_consolidated.append(target_dept)
+
+        # Step 2: Check for other valid departments (even if consolidated departments were added)
         for dept in valid_departments:
-            if dept.lower() in seg_clean.lower():
-                # Check for nanoscience consolidation
-                if dept in nanoscience_group:
-                    consolidated = "School of Nanoscience and Biotechnology"
-                    if consolidated not in matching_departments:
-                        matching_departments.append(consolidated)
-                # Check for chemistry consolidation
-                elif dept in chemistry_group:
-                    consolidated = "Department of Chemistry"
-                    if consolidated not in matching_departments:
-                        matching_departments.append(consolidated)
-                # Check for physics consolidation
-                elif dept in physics_group:
-                    consolidated = "Department of Physics"
-                    if consolidated not in matching_departments:
-                        matching_departments.append(consolidated)
-                # Add other departments directly
-                else:
-                    if dept not in matching_departments:
-                        matching_departments.append(dept)
+            dept_lower = dept.lower()
+            # Skip if already added via consolidation (e.g., "Department of Physics" vs "Dept. of Phys.")
+            if dept_lower in seg_clean and dept not in added_consolidated:
+                if dept not in matching_departments:
+                    matching_departments.append(dept)
+
     return "; ".join(matching_departments) if matching_departments else "Other"
 
 # Affiliation Processor: Extract corresponding author info and create a new "Department" column.
