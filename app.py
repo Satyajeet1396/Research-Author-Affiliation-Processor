@@ -43,21 +43,21 @@ def extract_departments(affiliation_str):
     matching_departments = []
     for seg in segments:
         seg_clean = seg.strip()
-        # Process segment only if it contains one of the valid affiliations.
         if not any(valid_affil.lower() in seg_clean.lower() for valid_affil in valid_affiliations):
             continue
-        # Skip segments that contain any exclusion keyword (case-insensitive).
         if any(excl.lower() in seg_clean.lower() for excl in exclusion_keywords):
             continue
-        # Search for valid department names.
         for dept in valid_departments:
             if dept.lower() in seg_clean.lower():
-                if dept not in matching_departments:
-                    matching_departments.append(dept)
-    if matching_departments:
-        return "; ".join(matching_departments)
-    else:
-        return "Other"
+                if dept in [
+                    "School of Nanoscience", "School of Nanoscience and Technology", 
+                    ]:
+                    if "School of Nanoscience and Biotechnology" not in matching_departments:
+                        matching_departments.append("School of Nanoscience and Biotechnology")
+                else:
+                    if dept not in matching_departments:
+                        matching_departments.append(dept)
+    return "; ".join(matching_departments) if matching_departments else "Other"
 
 # Affiliation Processor: Extract corresponding author info and create a new "Department" column.
 def process_file(file):
