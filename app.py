@@ -10,7 +10,7 @@ st.write("Upload a CSV file containing research papers with details on authors (
 # File uploader (shared between modules)
 uploaded_file = st.file_uploader("Upload CSV", type="csv")
 
-# Valid affiliations (for extracting corresponding author)
+# Valid affiliations (used both for corresponding author extraction and department filtering)
 valid_affiliations = ["Shivaji University", "Saveetha University"]
 
 # Exclusion keywords to skip in affiliation segments (using exact capitalization in the list)
@@ -37,14 +37,19 @@ valid_departments = [
 ]
 
 # Helper function to extract department(s) from an affiliation string.
+# It considers only those segments that contain one of the valid affiliations and do not contain any exclusion keywords.
 def extract_departments(affiliation_str):
     segments = affiliation_str.split(";")
     matching_departments = []
     for seg in segments:
         seg_clean = seg.strip()
-        # Skip segments that contain any exclusion keyword (case-insensitive)
+        # Only process segment if it contains one of the valid affiliations.
+        if not any(valid_affil.lower() in seg_clean.lower() for valid_affil in valid_affiliations):
+            continue
+        # Skip segments that contain any exclusion keyword (case-insensitive).
         if any(excl.lower() in seg_clean.lower() for excl in exclusion_keywords):
             continue
+        # Search for valid department names.
         for dept in valid_departments:
             if dept.lower() in seg_clean.lower():
                 if dept not in matching_departments:
@@ -91,11 +96,10 @@ def process_file(file):
                         valid_authors.append((name.strip(), affiliation))
                 # Otherwise, check if the affiliation contains any valid affiliation
                 elif any(valid in affiliation for valid in valid_affiliations):
-                    # Only add if the affiliation does not contain any exclusion keyword
+                    # Only add if the affiliation does not contain any exclusion keyword.
                     if not any(excl.lower() in affiliation.lower() for excl in exclusion_keywords):
                         valid_authors.append((name.strip(), affiliation))
         if valid_authors:
-            # Take the last valid author as the corresponding author
             corresponding_author, corresponding_affiliation = valid_authors[-1]
             df.at[index, 'Corresponding Author'] = corresponding_author
             df.at[index, 'Corresponding Affiliation'] = corresponding_affiliation
@@ -126,7 +130,7 @@ def process_department_stats(file):
     if "Cited by" not in df.columns:
         df["Cited by"] = 0
 
-    # Initialize statistics dictionary for each valid department and "Other".
+    # Initialize statistics dictionary for each valid department and an "Other" bucket.
     stats = {dept: {"Papers": 0, "Citations": 0} for dept in valid_departments}
     stats["Other"] = {"Papers": 0, "Citations": 0}
 
@@ -143,7 +147,10 @@ def process_department_stats(file):
         found = False
         for seg in segments:
             seg_clean = seg.strip()
-            # Skip segments containing unwanted keywords (case-insensitive)
+            # Only consider the segment if it contains one of the valid affiliations.
+            if not any(valid_affil.lower() in seg_clean.lower() for valid_affil in valid_affiliations):
+                continue
+            # Skip segments containing unwanted keywords.
             if any(excl.lower() in seg_clean.lower() for excl in exclusion_keywords):
                 continue
             for dept in valid_departments:
@@ -182,7 +189,7 @@ with tabs[0]:
 
 with tabs[1]:
     st.subheader("Department Statistics")
-    st.write("This module calculates the number of research papers and total citations for each department by matching valid department names (while skipping segments that contain 'College' or 'Affiliated to'). Citation counts are taken from the 'Cited by' column.")
+    st.write("This module calculates the number of research papers and total citations for each department by matching valid department names (while skipping segments that contain 'College' or 'Affiliated to') and only considering segments that also contain 'Shivaji University' or 'Saveetha University'. Citation counts are taken from the 'Cited by' column.")
     if uploaded_file:
         stats_df = process_department_stats(uploaded_file)
         if stats_df is not None:
