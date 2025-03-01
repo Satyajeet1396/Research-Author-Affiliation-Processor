@@ -9,17 +9,6 @@ st.write("Upload a CSV file containing research papers with author affiliations.
 # File uploader
 uploaded_file = st.file_uploader("Upload CSV", type="csv")
 
-# Define valid affiliations
-valid_affiliations = ["Shivaji University", "Saveetha University"]
-
-# Define exclusion keywords
-exclusion_keywords = [
-    "College", "Affiliated to", "Rajarambapu Institute of Technology",
-    "Bhogawati Mahavidyalaya", "ADCET", "AMGOI",
-    "Ashokrao Mane Group of Institutes", "Sanjay Ghodawat Group of Institutions",
-    "Patangrao Kadam", "Centre for PG Studies", "D. Y. Patil Education Society"
-]
-
 # List of valid departments
 valid_departments = [
     "Department of Agrochemicals and Pest Management", "Department of Bio-Chemistry",
@@ -34,7 +23,15 @@ valid_departments = [
     "School of Nanoscience and Biotechnology"
 ]
 
-# **Fix: Consolidation mapping for regex**
+# Define exclusion keywords (to filter out colleges and affiliated institutes)
+exclusion_keywords = [
+    "College", "Affiliated to", "Rajarambapu Institute of Technology",
+    "Bhogawati Mahavidyalaya", "ADCET", "AMGOI",
+    "Ashokrao Mane Group of Institutes", "Sanjay Ghodawat Group of Institutions",
+    "Patangrao Kadam", "Centre for PG Studies", "D. Y. Patil Education Society"
+]
+
+# Regex patterns for specific department corrections
 department_patterns = {
     "School of Nanoscience and Biotechnology": [
         r"school\s+of\s+nanoscience\s+(and|\&)?\s*biotechnology",
@@ -51,28 +48,42 @@ department_patterns = {
     ]
 }
 
-# Function to extract department
+# Function to extract the most relevant department
 def extract_department(affiliation_text):
     if pd.isna(affiliation_text) or not isinstance(affiliation_text, str):
         return "Other"
 
     affiliation_text = affiliation_text.lower()  # Convert to lowercase
+
+    # **Step 1: Apply exclusion filters**
     for exclusion in exclusion_keywords:
         if exclusion.lower() in affiliation_text:
             return "Other"
 
-    # **First: Try exact matching**
+    # **Step 2: Find all matching valid departments**
+    found_departments = []
+
+    # Exact match search
     for dept in valid_departments:
         if dept.lower() in affiliation_text:
-            return dept  # **Return exact match immediately**
+            found_departments.append(dept)
 
-    # **Second: Try regex matching for consolidated departments**
+    # Regex-based search
     for dept, patterns in department_patterns.items():
         for pattern in patterns:
             if re.search(pattern, affiliation_text, re.IGNORECASE):
-                return dept  # **Return regex matched department**
+                found_departments.append(dept)
 
-    return "Other"  # Default to Other if nothing matches
+    # **Step 3: Prioritize most relevant department**
+    if found_departments:
+        # Prefer "Shivaji University" departments first
+        for dept in found_departments:
+            if "shivaji university" in affiliation_text:
+                return dept
+        # Otherwise, return the first matched department
+        return found_departments[0]
+
+    return "Other"  # Default if nothing matches
 
 # Function to process the file
 def process_file(file):
