@@ -9,7 +9,7 @@ st.write("Upload a CSV file containing research papers with author affiliations.
 # File uploader
 uploaded_file = st.file_uploader("Upload CSV", type="csv")
 
-# Predefined valid departments
+# Standardized list of valid departments
 valid_departments = {
     "Department of Agro-Chemicals and Pest Management", "Department of Bio-Chemistry",
     "Department of Bio-Technology", "Department of Botany", "Department of Chemistry",
@@ -23,6 +23,12 @@ valid_departments = {
     "School of Nanoscience and Biotechnology"
 }
 
+# Normalize variations for better detection
+department_aliases = {
+    "School of Nanoscience and Bio-Technology": "School of Nanoscience and Biotechnology",
+    "Department of Nanotechnology and Advanced Materials Engineering": "School of Nanoscience and Biotechnology"
+}
+
 # Exclusion keywords
 exclusion_keywords = {
     "College", "Affiliated to", "Mahavidyalaya", "Rajarambapu Institute of Technology",
@@ -30,13 +36,13 @@ exclusion_keywords = {
     "Patangrao Kadam", "Centre for PG Studies", "D. Y. Patil Education Society"
 }
 
-# Regex patterns for department recognition
+# Updated regex patterns
 department_patterns = {
     "School of Nanoscience and Biotechnology": [
-        r"(school|department)\s+of\s+nanoscience\s+(and|\&)\s*(technology|biotechnology)"
+        r"(school|department)\s+of\s+nanoscience\s+(and|\&)?\s*(bio-?technology|biotechnology|technology)"
     ],
     "Department of Chemistry": [
-        r"chemistry\s+department", r"dept\.?\s+of\s+chemistry"
+        r"chemistry\s+department", r"dept\.?\s+of\s+chemistry", r"faculty\s+of\s+science.*chemistry"
     ],
     "Department of Physics": [
         r"physics\s+department", r"dept\.?\s+of\s+physics"
@@ -67,6 +73,11 @@ def extract_department(affiliation_text):
             for dept, patterns in department_patterns.items():
                 if any(re.search(pattern, segment, re.IGNORECASE) for pattern in patterns):
                     departments.add(dept)
+
+            # Check for alias matches
+            for alias, standard_dept in department_aliases.items():
+                if alias.lower().replace("-", " ") in segment:
+                    departments.add(standard_dept)
 
     return "; ".join(departments) if departments else "Other"
 
