@@ -29,7 +29,7 @@ department_aliases = {
     "Mathematics Department": "Department of Mathematics",
     
     # Department of Library & Information Science
-    "Department of Library & Information Science": "Barr.Balasaheb Khardekar Library",
+    "Barr.Balasaheb Khardekar Library": "Department of Library & Information Science",
     
     # Electronics
     "Dept. of Electronics": "Department of Electronics",
