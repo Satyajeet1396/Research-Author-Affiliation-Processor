@@ -17,7 +17,7 @@ valid_departments = {
     "Department of Electronics", "Department of Environmental Science",
     "Department of Geography", "Department of History", "Department of Law",
     "Department of Marathi", "Department of Mathematics", "Department of Microbiology",
-    "Department of Music and Dramatics", "Department of Physics",
+    "Department of Music and Dramatics", "Department of Physics", "Department of Biotechnology"
     "Department of Political Science", "Department of Psychology", "Department of Sociology",
     "Department of Statistics", "Department of Technology", "Department of Zoology",
     "University Science Instrumentation Centre", "School of Nanoscience and Biotechnology", "Department of Library & Information Science"
