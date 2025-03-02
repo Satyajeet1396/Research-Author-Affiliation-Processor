@@ -19,15 +19,85 @@ valid_departments = {
     "Department of Marathi", "Department of Mathematics", "Department of Microbiology",
     "Department of Music and Dramatics", "Department of Physics",
     "Department of Political Science", "Department of Psychology", "Department of Sociology",
-    "Department of Statistics", "Department of Technology", "Department of Zoology", "University Science Instrumentation Centre"
-    "School of Nanoscience and Biotechnology"
+    "Department of Statistics", "Department of Technology", "Department of Zoology",
+    "University Science Instrumentation Centre", "School of Nanoscience and Biotechnology", "Department of Library & Information Science"
 }
 
 # Normalize variations for better detection
 department_aliases = {
-    "School of Nanoscience and Bio-Technology": "School of Nanoscience and Biotechnology",
-    "Department of Nanotechnology and Advanced Materials Engineering": "School of Nanoscience and Biotechnology"
-     "Department of Mathematics": "Mathematics Department"
+    # Mathematics
+    "Mathematics Department": "Department of Mathematics",
+    
+    # Department of Library & Information Science
+    "Department of Library & Information Science": "Barr.Balasaheb Khardekar Library",
+    
+    # Electronics
+    "Dept. of Electronics": "Department of Electronics",
+    "Department of Electronic": "Department of Electronics",
+    
+    # Zoology
+    "Zoology Department": "Department of Zoology",
+    "Dept. of Zoology": "Department of Zoology",
+    
+    # Botany
+    "Botany Department": "Department of Botany",
+    "Dept of Botany": "Department of Botany",
+    "Botany Dept": "Department of Botany",
+    
+    # Chemistry
+    "Analytical Chemistry Laboratory": "Department of Chemistry",
+    "Inorganic Chemistry Laboratories": "Department of Chemistry",
+    "Deptt. of Chemistry": "Department of Chemistry",
+    "Department of C hemistry": "Department of Chemistry",
+    "Analytical Chemistry and Material Science Research Laboratory": "Department of Chemistry",
+    "Department of Organic Chemistry": "Department of Chemistry",
+    "Department of Chemistr": "Department of Chemistry",
+    "Depatment of Chemistry": "Department of Chemistry",
+    "Kinetics and Catalysis Division": "Department of Chemistry",
+    "Analyt. Chem. Lab.": "Department of Chemistry",
+    
+    # Physics
+    "Materials Research Laboratory Department": "Department of Physics",
+    "Departmentof Physics, Shivaji University": "Department of Physics",
+    "Department of Phhysics, Shivaji University, Kolhapur, M.S., 416004, India": "Department of Physics",
+    "Air Glass Laboratory": "Department of Physics",
+    "Air Glass Laboratory, Dept. Phys.": "Department of Physics",
+    "Department O F Physics": "Department of Physics",
+    "Depertment of Physics": "Department of Physics",
+    "Deptartment of Physics": "Department of Physics",
+    "Thin Film Materials Laboratory": "Department of Physics",
+    "Dept. Phys.": "Department of Physics",
+    "Physica Department": "Department of Physics",
+    "Solid State Physics Research Laboratory": "Department of Physics",
+    
+    # Technology
+    "Dept. of Energy Technology": "Department of Technology",
+    "Department of Energy Technology": "Department of Technology",
+    "Department of Mechanical Engineering": "Department of Technology",
+    "Department of Compute RScience and Engineering": "Department of Technology",
+    "Department of Civil Engineering": "Department of Technology",
+    "Electronics Engineering": "Department of Technology",
+    
+    # USIC
+    "Vacuum Techniques and Thin Film Laboratory": "University Science Instrumentation Centre",
+    "University Science Instrumentation Centre(USIC)": "University Science Instrumentation Centre",
+    
+    # Agro-Chemicals
+    "Department of Agrochemical and Pest Management": "Department of Agro-Chemicals and Pest Management",
+    
+    # Nanoscience
+    "Computational Electronics and Nanoscience Research Laboratory": "School of Nanoscience and Biotechnology",
+    "School of Nano Science and Technology": "School of Nanoscience and Biotechnology",
+    "Department of Nanoscience & Nanotechnology": "School of Nanoscience and Biotechnology",
+    
+    # Biochemistry
+    "Deartment of Biochemistry": "Department of Bio-Chemistry",
+    "Deparment of Biochemistry": "Department of Bio-Chemistry",
+    "Dept. of Biochemistry": "Department of Bio-Chemistry",
+    
+    # Statistics
+    "Dept. of Statistics": "Department of Statistics",
+    "Department of Statisties": "Department of Statistics"
 }
 
 # Exclusion keywords
@@ -35,19 +105,6 @@ exclusion_keywords = {
     "College", "Affiliated to", "Mahavidyalaya", "Rajarambapu Institute of Technology",
     "ADCET", "AMGOI", "Ashokrao Mane Group of Institutes", "Sanjay Ghodawat Group of Institutions",
     "Patangrao Kadam", "Centre for PG Studies", "D. Y. Patil Education Society"
-}
-
-# Updated regex patterns
-department_patterns = {
-    "School of Nanoscience and Biotechnology": [
-        r"(school|department)\s+of\s+nanoscience\s+(and|\&)?\s*(bio-?technology|biotechnology|technology)"
-    ],
-    "Department of Chemistry": [
-        r"chemistry\s+department", r"dept\.?\s+of\s+chemistry", r"faculty\s+of\s+science.*chemistry"
-    ],
-    "Department of Physics": [
-        r"physics\s+department", r"dept\.?\s+of\s+physics"
-    ]
 }
 
 # Extract department information from affiliation
@@ -63,22 +120,15 @@ def extract_department(affiliation_text):
         if any(excl.lower() in segment for excl in exclusion_keywords):
             continue
 
-        # Process only segments containing "shivaji university"
-        if "shivaji university" in segment:
-            # Exact matching
-            for dept in valid_departments:
-                if dept.lower().replace("-", " ") in segment:
-                    departments.add(dept)
+        # Check for exact matches
+        for dept in valid_departments:
+            if dept.lower().replace("-", " ") in segment:
+                departments.add(dept)
 
-            # Regex matching
-            for dept, patterns in department_patterns.items():
-                if any(re.search(pattern, segment, re.IGNORECASE) for pattern in patterns):
-                    departments.add(dept)
-
-            # Check for alias matches
-            for alias, standard_dept in department_aliases.items():
-                if alias.lower().replace("-", " ") in segment:
-                    departments.add(standard_dept)
+        # Check for alias matches
+        for alias, standard_dept in department_aliases.items():
+            if alias.lower().replace("-", " ") in segment:
+                departments.add(standard_dept)
 
     return "; ".join(departments) if departments else "Other"
 
