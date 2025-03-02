@@ -19,7 +19,7 @@ valid_departments = {
     "Department of Marathi", "Department of Mathematics", "Department of Microbiology",
     "Department of Music and Dramatics", "Department of Physics",
     "Department of Political Science", "Department of Psychology", "Department of Sociology",
-    "Department of Statistics", "Department of Technology", "Department of Zoology",
+    "Department of Statistics", "Department of Technology", "Department of Zoology", "University Science Instrumentation Centre"
     "School of Nanoscience and Biotechnology"
 }
 
@@ -27,6 +27,7 @@ valid_departments = {
 department_aliases = {
     "School of Nanoscience and Bio-Technology": "School of Nanoscience and Biotechnology",
     "Department of Nanotechnology and Advanced Materials Engineering": "School of Nanoscience and Biotechnology"
+     "Department of Mathematics": "Mathematics Department"
 }
 
 # Exclusion keywords
