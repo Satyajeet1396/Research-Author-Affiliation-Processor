@@ -17,7 +17,7 @@ valid_departments = {
     "Department of Electronics", "Department of Environmental Science",
     "Department of Geography", "Department of History", "Department of Law",
     "Department of Marathi", "Department of Mathematics", "Department of Microbiology",
-    "Department of Music and Dramatics", "Department of Physics",
+    "Department of Music and Dramatics", "Department of Physics", "Department of Economics"
     "Department of Political Science", "Department of Psychology", "Department of Sociology",
     "Department of Statistics", "Department of Technology", "Department of Zoology",
     "University Science Instrumentation Centre", "School of Nanoscience and Biotechnology", "Department of Library & Information Science", "Yashwantrao Chavan School of Rural Development"
@@ -27,7 +27,10 @@ valid_departments = {
 department_aliases = {
     # Mathematics
     "Mathematics Department": "Department of Mathematics",
-    
+
+    # Department of Computer Science
+    "Department of Computer Science": "Dept. of Computer Science",
+        
     # Department of Bio-Chemistry
     "Department of Biochemistry": "Department of Bio-Chemistry",
     
@@ -82,19 +85,19 @@ department_aliases = {
     "Department of Mechanical Engineering": "Department of Technology",
     "Department of Compute RScience and Engineering": "Department of Technology",
     "Department of Civil Engineering": "Department of Technology",
-    "Electronics Engineering": "Department of Technology",
+    "Electronics Engineering": "Department of Technology", "Department of Food Science and Technology", "Department of Electrical Engineering", "Electrical Department"
     
     # USIC
     "Vacuum Techniques and Thin Film Laboratory": "University Science Instrumentation Centre",
     "University Science Instrumentation Centre(USIC)": "University Science Instrumentation Centre",
     
     # Agro-Chemicals
-    "Department of Agrochemical and Pest Management": "Department of Agro-Chemicals and Pest Management",
+    "Department of Agrochemical and Pest Management": "Department of Agro-Chemicals and Pest Management", "Department of Agrochemicals & Pest Management"
     
     # Nanoscience
     "Computational Electronics and Nanoscience Research Laboratory": "School of Nanoscience and Biotechnology",
     "School of Nano Science and Technology": "School of Nanoscience and Biotechnology",
-    "Department of Nanoscience & Nanotechnology": "School of Nanoscience and Biotechnology",
+    "Department of Nanoscience & Nanotechnology": "School of Nanoscience and Biotechnology", "School of Nanoscience and Technology", "Department of Nanoscience and Technology"
     
     # Biochemistry
     "Deartment of Biochemistry": "Department of Bio-Chemistry",
