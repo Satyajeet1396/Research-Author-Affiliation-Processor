@@ -85,7 +85,9 @@ department_aliases = {
     "Department of Mechanical Engineering": "Department of Technology",
     "Department of Compute RScience and Engineering": "Department of Technology",
     "Department of Civil Engineering": "Department of Technology",
-    "Electronics Engineering", "Department of Technology", "Department of Food Science and Technology", "Department of Electrical Engineering", "Electrical Department",
+    "Electronics Engineering": "Department of Technology",
+    "Department of Food Science and Technology": "Department of Electrical Engineering",
+    "Electrical Department",
     
     # USIC
     "Vacuum Techniques and Thin Film Laboratory": "University Science Instrumentation Centre",
