@@ -20,7 +20,7 @@ valid_departments = {
     "Department of Music and Dramatics", "Department of Physics",
     "Department of Political Science", "Department of Psychology", "Department of Sociology",
     "Department of Statistics", "Department of Technology", "Department of Zoology",
-    "University Science Instrumentation Centre", "School of Nanoscience and Biotechnology", "Department of Library & Information Science"
+    "University Science Instrumentation Centre", "School of Nanoscience and Biotechnology", "Department of Library & Information Science", "Yashwantrao Chavan School of Rural Development"
 }
 
 # Normalize variations for better detection
