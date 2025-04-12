@@ -17,10 +17,11 @@ valid_departments = {
     "Department of Electronics", "Department of Environmental Science",
     "Department of Geography", "Department of History", "Department of Law",
     "Department of Marathi", "Department of Mathematics", "Department of Microbiology",
-    "Department of Music and Dramatics", "Department of Physics", "Department of Economics"
+    "Department of Music and Dramatics", "Department of Physics", "Department of Economics",
     "Department of Political Science", "Department of Psychology", "Department of Sociology",
     "Department of Statistics", "Department of Technology", "Department of Zoology",
-    "University Science Instrumentation Centre", "School of Nanoscience and Biotechnology", "Department of Library & Information Science", "Yashwantrao Chavan School of Rural Development"
+    "University Science Instrumentation Centre", "School of Nanoscience and Biotechnology",
+    "Department of Library & Information Science", "Yashwantrao Chavan School of Rural Development"
 }
 
 # Normalize variations for better detection
@@ -28,31 +29,34 @@ department_aliases = {
     # Mathematics
     "Mathematics Department": "Department of Mathematics",
 
-    # Department of Computer Science
+    # Computer Science
     "Department of Computer Science": "Dept. of Computer Science",
-        
-    # Department of Bio-Chemistry
+
+    # Biochemistry
     "Department of Biochemistry": "Department of Bio-Chemistry",
-    
-    # Department of Bio-Technology
+    "Deartment of Biochemistry": "Department of Bio-Chemistry",
+    "Deparment of Biochemistry": "Department of Bio-Chemistry",
+    "Dept. of Biochemistry": "Department of Bio-Chemistry",
+
+    # Bio-Technology
     "Department of Biotechnology": "Department of Bio-Technology",
-    
-    # Department of Library & Information Science
+
+    # Library
     "Barr.Balasaheb Khardekar Library": "Department of Library & Information Science",
-    
+
     # Electronics
     "Dept. of Electronics": "Department of Electronics",
     "Department of Electronic": "Department of Electronics",
-    
+
     # Zoology
     "Zoology Department": "Department of Zoology",
     "Dept. of Zoology": "Department of Zoology",
-    
+
     # Botany
     "Botany Department": "Department of Botany",
     "Dept of Botany": "Department of Botany",
     "Botany Dept": "Department of Botany",
-    
+
     # Chemistry
     "Analytical Chemistry Laboratory": "Department of Chemistry",
     "Inorganic Chemistry Laboratories": "Department of Chemistry",
@@ -64,7 +68,7 @@ department_aliases = {
     "Depatment of Chemistry": "Department of Chemistry",
     "Kinetics and Catalysis Division": "Department of Chemistry",
     "Analyt. Chem. Lab.": "Department of Chemistry",
-    
+
     # Physics
     "Materials Research Laboratory Department": "Department of Physics",
     "Departmentof Physics, Shivaji University": "Department of Physics",
@@ -78,7 +82,7 @@ department_aliases = {
     "Dept. Phys.": "Department of Physics",
     "Physica Department": "Department of Physics",
     "Solid State Physics Research Laboratory": "Department of Physics",
-    
+
     # Technology
     "Dept. of Energy Technology": "Department of Technology",
     "Department of Energy Technology": "Department of Technology",
@@ -86,26 +90,24 @@ department_aliases = {
     "Department of Compute RScience and Engineering": "Department of Technology",
     "Department of Civil Engineering": "Department of Technology",
     "Electronics Engineering": "Department of Technology",
-    "Department of Food Science and Technology": "Department of Electrical Engineering",
-    "Electrical Department",
-    
+    "Department of Food Science and Technology": "Department of Technology",
+    "Department of Electrical Engineering": "Department of Technology",
+
     # USIC
     "Vacuum Techniques and Thin Film Laboratory": "University Science Instrumentation Centre",
     "University Science Instrumentation Centre(USIC)": "University Science Instrumentation Centre",
-    
+
     # Agro-Chemicals
-    "Department of Agrochemical and Pest Management": "Department of Agro-Chemicals and Pest Management", "Department of Agrochemicals & Pest Management"
-    
+    "Department of Agrochemical and Pest Management": "Department of Agro-Chemicals and Pest Management",
+    "Department of Agrochemicals & Pest Management": "Department of Agro-Chemicals and Pest Management",
+
     # Nanoscience
     "Computational Electronics and Nanoscience Research Laboratory": "School of Nanoscience and Biotechnology",
     "School of Nano Science and Technology": "School of Nanoscience and Biotechnology",
-    "Department of Nanoscience & Nanotechnology": "School of Nanoscience and Biotechnology", "School of Nanoscience and Technology", "Department of Nanoscience and Technology"
-    
-    # Biochemistry
-    "Deartment of Biochemistry": "Department of Bio-Chemistry",
-    "Deparment of Biochemistry": "Department of Bio-Chemistry",
-    "Dept. of Biochemistry": "Department of Bio-Chemistry",
-    
+    "Department of Nanoscience & Nanotechnology": "School of Nanoscience and Biotechnology",
+    "School of Nanoscience and Technology": "School of Nanoscience and Biotechnology",
+    "Department of Nanoscience and Technology": "School of Nanoscience and Biotechnology",
+
     # Statistics
     "Dept. of Statistics": "Department of Statistics",
     "Department of Statisties": "Department of Statistics"
