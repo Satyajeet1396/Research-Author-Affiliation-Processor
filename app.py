@@ -20,8 +20,8 @@ valid_departments = {
     "Department of Music and Dramatics", "Department of Physics", "Department of Economics",
     "Department of Political Science", "Department of Psychology", "Department of Sociology",
     "Department of Statistics", "Department of Technology", "Department of Zoology",
-    "University Science Instrumentation Centre", "School of Nanoscience and Biotechnology",
-    "Department of Library & Information Science", "Yashwantrao Chavan School of Rural Development"
+    "University Science Instrumentation Centre", "School of Nanoscience and Biotechnology", "Department of English",
+    "Department of Library & Information Science", "Yashwantrao Chavan School of Rural Development", "Department of Education", "Chhatrapati Shahu Maharaj Centre for Studies",
 }
 
 # Normalize variations for better detection
@@ -30,7 +30,8 @@ department_aliases = {
     "Mathematics Department": "Department of Mathematics",
 
     # Computer Science
-    "Department of Computer Science": "Dept. of Computer Science",
+    "Dept. of Computer Science": "Department of Computer Science",
+    "Computer Science Department": "Department of Computer Science",
 
     # Biochemistry
     "Department of Biochemistry": "Department of Bio-Chemistry",
@@ -40,10 +41,15 @@ department_aliases = {
 
     # Bio-Technology
     "Department of Biotechnology": "Department of Bio-Technology",
-
+    "Department of Environmental Biotechnology": "Department of Bio-Technology",
+    "Biotechnology Department": "Department of Bio-Technology",
+    
     # Library
     "Barr.Balasaheb Khardekar Library": "Department of Library & Information Science",
-
+    "Department of Library and Information Science": "Department of Library & Information Science",
+    "Dept. Library & Information Science": "Department of Library & Information Science",
+    "Barr. Balasaheb Khardekar Knowledge Resource Centre": "Department of Library & Information Science",
+    
     # Electronics
     "Dept. of Electronics": "Department of Electronics",
     "Department of Electronic": "Department of Electronics",
@@ -92,14 +98,23 @@ department_aliases = {
     "Electronics Engineering": "Department of Technology",
     "Department of Food Science and Technology": "Department of Technology",
     "Department of Electrical Engineering": "Department of Technology",
-
+    "Electrical Department": "Department of Technology",
+    "E&TC Engg., DoT": "Department of Technology",
+    "Electrical Engineering Department": "Department of Technology",
+    "Electronics Technology Department": "Department of Technology",
+    "DOT": "Department of Technology",
+    "Electrical Enginneering Department.": "Department of Technology",
+    
     # USIC
     "Vacuum Techniques and Thin Film Laboratory": "University Science Instrumentation Centre",
     "University Science Instrumentation Centre(USIC)": "University Science Instrumentation Centre",
+    "Energy Research and Thin Film Laboratory, USIC": "University Science Instrumentation Centre",
 
     # Agro-Chemicals
     "Department of Agrochemical and Pest Management": "Department of Agro-Chemicals and Pest Management",
     "Department of Agrochemicals & Pest Management": "Department of Agro-Chemicals and Pest Management",
+    "Department of Agrochemicals and Pest Management": "Department of Agro-Chemicals and Pest Management",
+    "Department of Agrochemical and Paste Management": "Department of Agro-Chemicals and Pest Management",
 
     # Nanoscience
     "Computational Electronics and Nanoscience Research Laboratory": "School of Nanoscience and Biotechnology",
@@ -107,6 +122,7 @@ department_aliases = {
     "Department of Nanoscience & Nanotechnology": "School of Nanoscience and Biotechnology",
     "School of Nanoscience and Technology": "School of Nanoscience and Biotechnology",
     "Department of Nanoscience and Technology": "School of Nanoscience and Biotechnology",
+    "School of Nanoscience & Technology": "School of Nanoscience and Biotechnology", 
 
     # Statistics
     "Dept. of Statistics": "Department of Statistics",
